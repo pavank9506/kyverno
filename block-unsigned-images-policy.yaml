@@ -1,0 +1,23 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-image-signature
+spec:
+  validationFailureAction: enforce
+  rules:
+    - name: block-unsigned-images
+      match:
+        resources:
+          kinds:
+            - Deployment
+      verifyImages:
+        - imageReferences:
+            - "*"
+          attestors:
+            - entries:
+                - keyless:
+                  issuer: "https://token.actions.githubusercontent.com"
+                  subject: "*"
+          required: true
+      validate:
+        message: "All container images must be signed. Unsigned images are not allowed."
